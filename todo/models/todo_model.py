@@ -13,6 +13,7 @@ class Todo(models.Model):
         description (str) : Optional detailed description of the task.
         status (str) : The current status of the task (Pending, In Progress, Done).
         created_at (datetime) : The date and time when the task was created.
+        due_at (datetime) : The due date and time for the task.
         photo (CloudinaryField) : An optional photo related to the task, stored in Cloudinary.
     """
     STATUS_CHOICES = [
@@ -26,6 +27,7 @@ class Todo(models.Model):
     description = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     created_at = models.DateTimeField(auto_now_add=True)
+    due_at = models.DateTimeField(blank=True, null=True)
     photo = CloudinaryField('photo', blank=True, null=True, folder='todo_photos')
 
     def __str__(self):

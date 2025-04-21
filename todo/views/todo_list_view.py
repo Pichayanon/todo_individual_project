@@ -1,6 +1,7 @@
 from django.views.generic import TemplateView
-from todo.models import Todo
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils import timezone
+from todo.models import Todo
 
 
 class TodoListView(LoginRequiredMixin, TemplateView):
@@ -18,4 +19,5 @@ class TodoListView(LoginRequiredMixin, TemplateView):
         context['pending_todos'] = Todo.objects.filter(status='Pending', user=self.request.user)
         context['inprogress_todos'] = Todo.objects.filter(status='In Progress', user=self.request.user)
         context['done_todos'] = Todo.objects.filter(status='Done', user=self.request.user)
+        context['now'] = timezone.now()
         return context

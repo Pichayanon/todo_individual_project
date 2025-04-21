@@ -8,6 +8,9 @@
         <div class="mb-3">
             {{ field.label_tag }}
             {{ field }}
+            {% if field.help_text %}
+                <div class="form-text text-muted">{{ field.help_text }}</div>
+            {% endif %}
             {% if field.errors %}
                 <div class="text-danger small">{{ field.errors|striptags }}</div>
             {% endif %}

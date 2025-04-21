@@ -10,10 +10,14 @@ class TodoForm(forms.ModelForm):
         title (CharField): Title of the todo task.
         description (TextField): Optional detailed description.
         photo (CloudinaryField): Optional image associated with the task.
+        due_at (DateTimeField): Optional due date and time for the task.
     """
     class Meta:
         model = Todo
-        fields = ["title", "description", "photo"]
+        fields = ["title", "description", "photo", "due_at"]
+        widgets = {
+            "due_at": forms.TextInput(attrs={'placeholder': 'Select date and time'}),
+        }
 
     def __init__(self, *args, **kwargs):
         """Initialize the form and apply Bootstrap 5 classes to all fields."""

@@ -2,14 +2,34 @@
     <div class="card-body">
         <h5 class="card-title mb-2">{{ todo.title }}</h5>
         <p class="card-text">{{ todo.description }}</p>
-
         {% if todo.photo %}
             <img src="{{ todo.photo.url }}" class="img-fluid mt-2 rounded" alt="todo photo">
         {% endif %}
 
-        <div class="mt-3">
-            <a href="{% url 'edit_todo' todo.id %}" class="btn btn-sm btn-warning">Edit</a>
-            <a href="{% url 'delete_todo' todo.id %}" class="btn btn-sm btn-danger">Delete</a>
+        <div class="mt-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                <a href="{% url 'edit_todo' todo.id %}" class="btn btn-sm btn-warning me-2">Edit</a>
+                <a href="{% url 'delete_todo' todo.id %}" class="btn btn-sm btn-danger">Delete</a>
+            </div>
+
+            {% if todo.status == 'Done' %}
+                <span class="badge bg-success">
+                    <i class="bi bi-check-circle me-1"></i> Done
+                </span>
+            {% elif todo.due_at %}
+                {% if todo.due_at < now %}
+                    <span class="badge bg-danger" data-due-at="{{ todo.due_at|date:'Y-m-d\\TH:i:s' }}">
+                        <i class="bi bi-exclamation-circle me-1"></i> Late
+                    </span>
+                {% else %}
+                    <span class="badge bg-secondary" data-due-at="{{ todo.due_at|date:'Y-m-d\\TH:i:s' }}">
+                        <i class="bi bi-calendar-event me-1"></i>
+                        Due: {{ todo.due_at|date:"D, d M Y H:i" }}
+                    </span>
+                {% endif %}
+            {% endif %}
+
         </div>
+
     </div>
 </div>

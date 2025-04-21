@@ -1,5 +1,7 @@
 {% extends 'todo/base.html' %}
 {% load static %}
+{% load tz %}
+{% now "Y-m-d H:i:s" as now_str %}
 
 {% block content %}
     <h2 class="mb-4">Your Todo List</h2>
@@ -69,13 +71,15 @@
 
     <script>
         const statuses = ['pending', 'inprogress', 'done'];
+        const now = new Date("{{ now_str }}");
 
         statuses.forEach(status => {
             new Sortable(document.getElementById(status), {
                 group: 'todos',
                 animation: 150,
                 onAdd: function (evt) {
-                    const todoId = evt.item.getAttribute('data-id');
+                    const todoItem = evt.item;
+                    const todoId = todoItem.getAttribute('data-id');
                     const newStatus = evt.to.id === 'pending' ? 'Pending'
                         : evt.to.id === 'inprogress' ? 'In Progress'
                             : 'Done';
@@ -87,8 +91,27 @@
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
                         body: new URLSearchParams({status: newStatus})
+                    }).then(() => {
+                        const badge = todoItem.querySelector('.badge');
+                        const dueAt = badge?.dataset?.dueAt;
+                        if (!badge || !dueAt) return;
+
+                        const dueTime = new Date(dueAt);
+                        const now = new Date();
+
+                        if (newStatus === 'Done') {
+                            badge.className = 'badge bg-success';
+                            badge.innerHTML = `<i class="bi bi-check-circle me-1"></i> Done`;
+                        } else if (dueTime < now) {
+                            badge.className = 'badge bg-danger';
+                            badge.innerHTML = `<i class="bi bi-exclamation-circle me-1"></i> Late`;
+                        } else {
+                            badge.className = 'badge bg-secondary';
+                            badge.innerHTML = `<i class="bi bi-calendar-event me-1"></i> Due: ` + dueTime.toLocaleString();
+                        }
                     });
                 }
+
             });
         });
 
