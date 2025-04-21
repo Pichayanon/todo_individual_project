@@ -13,7 +13,7 @@
             </div>
 
             {% if todo.status == 'Done' %}
-                <span class="badge bg-success">
+                <span class="badge bg-success" data-due-at="{{ todo.due_at|date:'Y-m-d\\TH:i:s' }}">
                     <i class="bi bi-check-circle me-1"></i> Done
                 </span>
             {% elif todo.due_at %}
@@ -27,7 +27,12 @@
                         Due: {{ todo.due_at|date:"D, d M Y H:i" }}
                     </span>
                 {% endif %}
+            {% else %}
+                <span class="badge bg-secondary" data-due-at="">
+                    <i class="bi bi-calendar-event me-1"></i> No Due Date
+                </span>
             {% endif %}
+
 
         </div>
 

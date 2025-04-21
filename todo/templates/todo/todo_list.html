@@ -4,131 +4,137 @@
 {% now "Y-m-d H:i:s" as now_str %}
 
 {% block content %}
-<h2 class="mb-4">Your Todo List</h2>
-<a href="{% url 'add_todo' %}" class="btn btn-primary mb-3">
-    <i class="bi bi-plus-circle-fill"></i> Add New Todo
-</a>
+    <h2 class="mb-4">Your Todo List</h2>
+    <a href="{% url 'add_todo' %}" class="btn btn-primary mb-3">
+        <i class="bi bi-plus-circle-fill"></i> Add New Todo
+    </a>
 
-<style>
-    .todo-column {
-        min-height: 75vh;
-        border: 2px dashed #ccc;
-        background-color: #f8f9fa;
-        padding: 1rem;
-        border-radius: 8px;
-    }
+    <style>
+        .todo-column {
+            min-height: 75vh;
+            border: 2px dashed #ccc;
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+        }
 
-    .todo-column .list-group-item {
-        padding: 0 !important;
-        margin: 0 !important;
-        border: none !important;
-        background-color: transparent !important;
-        display: flex;
-        flex-direction: column;
-    }
+        .todo-column .list-group-item {
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+            background-color: transparent !important;
+            display: flex;
+            flex-direction: column;
+        }
 
-    .todo-column .card {
-        margin-bottom: 1rem;
-        height: 100%;
-        width: 100%;
-    }
-</style>
+        .todo-column .card {
+            margin-bottom: 1rem;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
 
-<div class="row g-4">
-    <div class="col-md-4">
-        <h4><i class="bi bi-journal-text text-primary"></i> Todo</h4>
-        <div id="pending" class="todo-column list-group">
-            {% for todo in pending_todos %}
-                <div class="list-group-item p-0 border-0 mb-2" data-id="{{ todo.id }}">
-                    {% include 'todo/components/todo_item.html' %}
-                </div>
-            {% endfor %}
+    <div class="row g-4">
+        <div class="col-md-4">
+            <h4><i class="bi bi-journal-text text-primary"></i> Todo</h4>
+            <div id="pending" class="todo-column list-group">
+                {% for todo in pending_todos %}
+                    <div class="list-group-item p-0 border-0 mb-2" data-id="{{ todo.id }}">
+                        {% include 'todo/components/todo_item.html' %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <h4><i class="bi bi-hourglass-split text-warning"></i> In Progress</h4>
+            <div id="inprogress" class="todo-column list-group">
+                {% for todo in inprogress_todos %}
+                    <div class="list-group-item p-0 border-0 mb-2" data-id="{{ todo.id }}">
+                        {% include 'todo/components/todo_item.html' %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <h4><i class="bi bi-check-circle-fill text-success"></i> Done</h4>
+            <div id="done" class="todo-column list-group">
+                {% for todo in done_todos %}
+                    <div class="list-group-item p-0 border-0 mb-2" data-id="{{ todo.id }}">
+                        {% include 'todo/components/todo_item.html' %}
+                    </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <h4><i class="bi bi-hourglass-split text-warning"></i> In Progress</h4>
-        <div id="inprogress" class="todo-column list-group">
-            {% for todo in inprogress_todos %}
-                <div class="list-group-item p-0 border-0 mb-2" data-id="{{ todo.id }}">
-                    {% include 'todo/components/todo_item.html' %}
-                </div>
-            {% endfor %}
-        </div>
-    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const statuses = ['pending', 'inprogress', 'done'];
+            const nowStr = "{{ now_str|default:'' }}";
+            const now = nowStr ? new Date(nowStr) : new Date();
 
-    <div class="col-md-4">
-        <h4><i class="bi bi-check-circle-fill text-success"></i> Done</h4>
-        <div id="done" class="todo-column list-group">
-            {% for todo in done_todos %}
-                <div class="list-group-item p-0 border-0 mb-2" data-id="{{ todo.id }}">
-                    {% include 'todo/components/todo_item.html' %}
-                </div>
-            {% endfor %}
-        </div>
-    </div>
-</div>
+            statuses.forEach(status => {
+                new Sortable(document.getElementById(status), {
+                    group: 'todos',
+                    animation: 150,
+                    onAdd: function (evt) {
+                        const todoItem = evt.item;
+                        const todoId = todoItem.getAttribute('data-id');
+                        const newStatus = evt.to.id === 'pending' ? 'Pending'
+                            : evt.to.id === 'inprogress' ? 'In Progress'
+                                : 'Done';
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const statuses = ['pending', 'inprogress', 'done'];
-        const nowStr = "{{ now_str|default:'' }}";
-        const now = nowStr ? new Date(nowStr) : new Date();
+                        fetch(`/update/${todoId}/`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': getCookie('csrftoken'),
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: new URLSearchParams({status: newStatus})
+                        }).then(() => {
+                            const badge = todoItem.querySelector('.badge');
+                            const dueAt = badge?.dataset?.dueAt;
 
-        statuses.forEach(status => {
-            new Sortable(document.getElementById(status), {
-                group: 'todos',
-                animation: 150,
-                onAdd: function (evt) {
-                    const todoItem = evt.item;
-                    const todoId = todoItem.getAttribute('data-id');
-                    const newStatus = evt.to.id === 'pending' ? 'Pending'
-                        : evt.to.id === 'inprogress' ? 'In Progress'
-                            : 'Done';
+                            if (!badge) return;
 
-                    fetch(`/update/${todoId}/`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': getCookie('csrftoken'),
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: new URLSearchParams({status: newStatus})
-                    }).then(() => {
-                        const badge = todoItem.querySelector('.badge');
-                        const dueAt = badge?.dataset?.dueAt;
-                        if (!badge || !dueAt) return;
+                            if (newStatus === 'Done') {
+                                badge.className = 'badge bg-success';
+                                badge.innerHTML = `<i class="bi bi-check-circle me-1"></i> Done`;
+                            } else if (dueAt) {
+                                const dueTime = new Date(dueAt);
+                                if (dueTime < now) {
+                                    badge.className = 'badge bg-danger';
+                                    badge.innerHTML = `<i class="bi bi-exclamation-circle me-1"></i> Late`;
+                                } else {
+                                    badge.className = 'badge bg-secondary';
+                                    badge.innerHTML = `<i class="bi bi-calendar-event me-1"></i> Due: ` + dueTime.toLocaleString();
+                                }
+                            } else {
+                                badge.className = 'badge bg-secondary';
+                                badge.innerHTML = `<i class="bi bi-calendar-event me-1"></i> No Due Date`;
+                            }
 
-                        const dueTime = new Date(dueAt);
-
-                        if (newStatus === 'Done') {
-                            badge.className = 'badge bg-success';
-                            badge.innerHTML = `<i class="bi bi-check-circle me-1"></i> Done`;
-                        } else if (dueTime < now) {
-                            badge.className = 'badge bg-danger';
-                            badge.innerHTML = `<i class="bi bi-exclamation-circle me-1"></i> Late`;
-                        } else {
-                            badge.className = 'badge bg-secondary';
-                            badge.innerHTML = `<i class="bi bi-calendar-event me-1"></i> Due: ` + dueTime.toLocaleString();
-                        }
-                    });
-                }
+                        });
+                    }
+                });
             });
-        });
 
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let cookie of cookies) {
-                    cookie = cookie.trim();
-                    if (cookie.startsWith(name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let cookie of cookies) {
+                        cookie = cookie.trim();
+                        if (cookie.startsWith(name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
                     }
                 }
+                return cookieValue;
             }
-            return cookieValue;
-        }
-    });
-</script>
+        });
+    </script>
 {% endblock %}
