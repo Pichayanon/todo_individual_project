@@ -1,31 +1,100 @@
 {% extends 'todo/base.html' %}
+{% load static %}
+
 {% block content %}
     <h2 class="mb-4">Your Todo List</h2>
-    <a href="{% url 'add_todo' %}" class="btn btn-primary mb-3">Add New Todo</a>
-    <div class="row">
+    <a href="{% url 'add_todo' %}" class="btn btn-primary mb-3">
+        <i class="bi bi-plus-circle-fill"></i> Add New Todo
+    </a>
+
+    <style>
+        .todo-column {
+            min-height: 75vh;
+            border: 2px dashed #ccc;
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .todo-column .card {
+            cursor: grab;
+        }
+    </style>
+
+    <div class="row g-4">
         <div class="col-md-4">
-            <h4>Pending</h4>
-            {% for todo in pending_todos %}
-                {% include 'todo/components/todo_item.html' %}
-            {% empty %}
-                <p class="text-muted">No pending tasks.</p>
-            {% endfor %}
+            <h4><i class="bi bi-journal-text text-primary"></i> Todo</h4>
+            <div id="pending" class="todo-column list-group">
+                {% for todo in pending_todos %}
+                    <div class="list-group-item p-0 border-0 mb-2" data-id="{{ todo.id }}">
+                        {% include 'todo/components/todo_item.html' %}
+                    </div>
+                {% endfor %}
+            </div>
         </div>
+
         <div class="col-md-4">
-            <h4>In Progress</h4>
-            {% for todo in inprogress_todos %}
-                {% include 'todo/components/todo_item.html' %}
-            {% empty %}
-                <p class="text-muted">No tasks in progress.</p>
-            {% endfor %}
+            <h4><i class="bi bi-hourglass-split text-warning"></i> In Progress</h4>
+            <div id="inprogress" class="todo-column list-group">
+                {% for todo in inprogress_todos %}
+                    <div class="list-group-item p-0 border-0 mb-2" data-id="{{ todo.id }}">
+                        {% include 'todo/components/todo_item.html' %}
+                    </div>
+                {% endfor %}
+            </div>
         </div>
+
+
         <div class="col-md-4">
-            <h4>Done</h4>
-            {% for todo in done_todos %}
-                {% include 'todo/components/todo_item.html' %}
-            {% empty %}
-                <p class="text-muted">No completed tasks.</p>
-            {% endfor %}
+            <h4><i class="bi bi-check-circle-fill text-success"></i> Done</h4>
+            <div id="done" class="todo-column list-group">
+                {% for todo in done_todos %}
+                    <div class="list-group-item p-0 border-0 mb-2" data-id="{{ todo.id }}">
+                        {% include 'todo/components/todo_item.html' %}
+                    </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
+
+    <script>
+        const statuses = ['pending', 'inprogress', 'done'];
+
+        statuses.forEach(status => {
+            new Sortable(document.getElementById(status), {
+                group: 'todos',
+                animation: 150,
+                onAdd: function (evt) {
+                    const todoId = evt.item.getAttribute('data-id');
+                    const newStatus = evt.to.id === 'pending' ? 'Pending'
+                        : evt.to.id === 'inprogress' ? 'In Progress'
+                            : 'Done';
+
+                    fetch(`/update/${todoId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({status: newStatus})
+                    });
+                }
+            });
+        });
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let cookie of cookies) {
+                    cookie = cookie.trim();
+                    if (cookie.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
 {% endblock %}
