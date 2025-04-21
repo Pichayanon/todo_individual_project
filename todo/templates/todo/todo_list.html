@@ -4,74 +4,76 @@
 {% now "Y-m-d H:i:s" as now_str %}
 
 {% block content %}
-    <h2 class="mb-4">Your Todo List</h2>
-    <a href="{% url 'add_todo' %}" class="btn btn-primary mb-3">
-        <i class="bi bi-plus-circle-fill"></i> Add New Todo
-    </a>
+<h2 class="mb-4">Your Todo List</h2>
+<a href="{% url 'add_todo' %}" class="btn btn-primary mb-3">
+    <i class="bi bi-plus-circle-fill"></i> Add New Todo
+</a>
 
-    <style>
-        .todo-column {
-            min-height: 75vh;
-            border: 2px dashed #ccc;
-            background-color: #f8f9fa;
-            padding: 1rem;
-            border-radius: 8px;
-        }
+<style>
+    .todo-column {
+        min-height: 75vh;
+        border: 2px dashed #ccc;
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+    }
 
-        .todo-column .list-group-item {
-            padding: 0 !important;
-            margin: 0 !important;
-            border: none !important;
-            background-color: transparent !important;
-            display: flex;
-            flex-direction: column;
-        }
+    .todo-column .list-group-item {
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        background-color: transparent !important;
+        display: flex;
+        flex-direction: column;
+    }
 
-        .todo-column .card {
-            margin-bottom: 1rem;
-            height: 100%;
-            width: 100%;
-        }
-    </style>
+    .todo-column .card {
+        margin-bottom: 1rem;
+        height: 100%;
+        width: 100%;
+    }
+</style>
 
-    <div class="row g-4">
-        <div class="col-md-4">
-            <h4><i class="bi bi-journal-text text-primary"></i> Todo</h4>
-            <div id="pending" class="todo-column list-group">
-                {% for todo in pending_todos %}
-                    <div class="list-group-item p-0 border-0 mb-2" data-id="{{ todo.id }}">
-                        {% include 'todo/components/todo_item.html' %}
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <h4><i class="bi bi-hourglass-split text-warning"></i> In Progress</h4>
-            <div id="inprogress" class="todo-column list-group">
-                {% for todo in inprogress_todos %}
-                    <div class="list-group-item p-0 border-0 mb-2" data-id="{{ todo.id }}">
-                        {% include 'todo/components/todo_item.html' %}
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <h4><i class="bi bi-check-circle-fill text-success"></i> Done</h4>
-            <div id="done" class="todo-column list-group">
-                {% for todo in done_todos %}
-                    <div class="list-group-item p-0 border-0 mb-2" data-id="{{ todo.id }}">
-                        {% include 'todo/components/todo_item.html' %}
-                    </div>
-                {% endfor %}
-            </div>
+<div class="row g-4">
+    <div class="col-md-4">
+        <h4><i class="bi bi-journal-text text-primary"></i> Todo</h4>
+        <div id="pending" class="todo-column list-group">
+            {% for todo in pending_todos %}
+                <div class="list-group-item p-0 border-0 mb-2" data-id="{{ todo.id }}">
+                    {% include 'todo/components/todo_item.html' %}
+                </div>
+            {% endfor %}
         </div>
     </div>
 
-    <script>
+    <div class="col-md-4">
+        <h4><i class="bi bi-hourglass-split text-warning"></i> In Progress</h4>
+        <div id="inprogress" class="todo-column list-group">
+            {% for todo in inprogress_todos %}
+                <div class="list-group-item p-0 border-0 mb-2" data-id="{{ todo.id }}">
+                    {% include 'todo/components/todo_item.html' %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <h4><i class="bi bi-check-circle-fill text-success"></i> Done</h4>
+        <div id="done" class="todo-column list-group">
+            {% for todo in done_todos %}
+                <div class="list-group-item p-0 border-0 mb-2" data-id="{{ todo.id }}">
+                    {% include 'todo/components/todo_item.html' %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
         const statuses = ['pending', 'inprogress', 'done'];
-        const now = new Date("{{ now_str }}");
+        const nowStr = "{{ now_str|default:'' }}";
+        const now = nowStr ? new Date(nowStr) : new Date();
 
         statuses.forEach(status => {
             new Sortable(document.getElementById(status), {
@@ -97,7 +99,6 @@
                         if (!badge || !dueAt) return;
 
                         const dueTime = new Date(dueAt);
-                        const now = new Date();
 
                         if (newStatus === 'Done') {
                             badge.className = 'badge bg-success';
@@ -111,7 +112,6 @@
                         }
                     });
                 }
-
             });
         });
 
@@ -129,5 +129,6 @@
             }
             return cookieValue;
         }
-    </script>
+    });
+</script>
 {% endblock %}
