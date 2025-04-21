@@ -1,0 +1,24 @@
+<div class="card mb-3 shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title">{{ todo.title }}</h5>
+        <p class="card-text">{{ todo.description }}</p>
+        {% if todo.photo %}
+            <img src="{{ todo.photo.url }}" class="img-fluid rounded mb-2" alt="Todo Photo">
+        {% endif %}
+        <form method="post" action="{% url 'update_status' todo.id %}">
+            {% csrf_token %}
+            <div class="d-flex align-items-center mb-2">
+                <label class="me-2 mb-0">Status:</label>
+                <select name="status" class="form-select w-auto" onchange="this.form.submit()">
+                    <option value="Pending" {% if todo.status == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="In Progress" {% if todo.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                    <option value="Done" {% if todo.status == 'Done' %}selected{% endif %}>Done</option>
+                </select>
+            </div>
+        </form>
+        <div class="d-flex gap-2">
+            <a href="{% url 'edit_todo' todo.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+            <a href="{% url 'delete_todo' todo.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
+        </div>
+    </div>
+</div>

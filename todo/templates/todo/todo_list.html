@@ -1,0 +1,31 @@
+{% extends 'todo/base.html' %}
+{% block content %}
+    <h2 class="mb-4">Your Todo List</h2>
+    <a href="{% url 'add_todo' %}" class="btn btn-primary mb-3">Add New Todo</a>
+    <div class="row">
+        <div class="col-md-4">
+            <h4>Pending</h4>
+            {% for todo in pending_todos %}
+                {% include 'todo/components/todo_item.html' %}
+            {% empty %}
+                <p class="text-muted">No pending tasks.</p>
+            {% endfor %}
+        </div>
+        <div class="col-md-4">
+            <h4>In Progress</h4>
+            {% for todo in inprogress_todos %}
+                {% include 'todo/components/todo_item.html' %}
+            {% empty %}
+                <p class="text-muted">No tasks in progress.</p>
+            {% endfor %}
+        </div>
+        <div class="col-md-4">
+            <h4>Done</h4>
+            {% for todo in done_todos %}
+                {% include 'todo/components/todo_item.html' %}
+            {% empty %}
+                <p class="text-muted">No completed tasks.</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
